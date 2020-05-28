@@ -1,0 +1,201 @@
+<html>
+<head></head>
+<body>
+	<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+	<script>
+		var canvas;
+		var canvasContext;
+
+		const TOP_INFO_HEIGHT = 20
+
+		var ballX = 50;
+		var ballSpeedX = 10;
+		var ballY = 50;
+		var ballSpeedY = 10;
+
+    const BALL_RADIUS = 7;
+
+		const TRACK_W = 80;
+		const TRACK_H = 20;
+		const TRACK_GAP = 2;
+		const TRACK_COLS = 10;
+		const TRACK_ROWS = 14;
+		var trackGrid = new Array(TRACK_ROWS * TRACK_COLS);
+		var trackCounter = 0;
+
+		var playerScore = 0;
+		const STARTING_LIVES = 3;
+    var playerLives = STARTING_LIVES;
+
+		var showingLoseScreen = false;
+		var showingWinScreen = false;
+
+		window.onload = function() {
+			canvas = document.getElementById('gameCanvas');
+			canvasContext = canvas.getContext('2d');
+			
+			tracksReset();
+
+			var framesPerSecond = 30;
+			setInterval(function() {
+				animate();
+				draw();
+			}, 1000/framesPerSecond);
+
+			ballReset();
+		}
+
+		function ballReset() {
+      if (playerLives <= 0) {
+				showingLoseScreen = true;
+			}
+
+			ballSpeedX = -ballSpeedX;
+			ballX = canvas.width/2
+			ballY = paddleY-10-BALL_RADIUS*2;
+		}
+
+		function tracksReset() {
+			for (var i=3*TRACK_COLS; i<TRACK_ROWS * TRACK_COLS; i++) {
+				trackGrid[i]	= 1;
+				trackCounter++;
+			}
+		}
+
+		function doesTrackExist(row, col) {
+			var trackIndex = trackCoordToIndex(row, col);
+			return (trackGrid[trackIndex] == 1);
+		}
+
+		function trackCoordToIndex(row, col) {
+			return col + TRACK_COLS * row;
+		}
+
+		function breakAndBounceOffTrackAtPixelCoord(x, y) {
+			var col = Math.floor(x/TRACK_W);
+			var row = Math.floor(y/TRACK_H);
+
+			// outside the track area - don't do anything
+			if (col < 0 || col >= TRACK_COLS || row < 0 || row >= TRACK_ROWS) 
+				return;
+
+			var trackIndex = trackCoordToIndex(row, col);
+			// if track is not removed
+			if (trackGrid[trackIndex] == 1) {
+				previousCol = Math.floor((ballX-ballSpeedX) / TRACK_W);
+				previousRow = Math.floor((ballY-ballSpeedY) / TRACK_H);
+
+				var bothTestsFailed = true;
+
+				// ball changed columns of the track grid
+				if (previousCol != col) {
+					// make sure that there is no horizontally adjacent track from where the ball is coming
+					var	adjacentTrackIndex	=	trackCoordToIndex(row, previousCol);
+					if (trackGrid[adjacentTrackIndex] != 1)	{
+						ballSpeedX = -ballSpeedX;
+						bothTestsFailed	= false;
+					}
+				}
+
+				// ball changed rows of the track grid
+				if (previousRow != row) {
+					// make sure that there is no vertically adjacent track from where the ball is coming
+					var	adjacentTrackIndex	=	trackCoordToIndex(previousRow, col);
+					if (trackGrid[adjacentTrackIndex] != 1)	{
+						ballSpeedY = -ballSpeedY;
+						bothTestsFailed	= false;
+					}
+				}
+
+				// the ball hit three tracks in L-like shape - reverse movement 
+				if (bothTestsFailed) {
+					ballSpeedX = -ballSpeedX;
+      		ballSpeedY = -ballSpeedY;
+				}
+
+				trackGrid[trackIndex] = 0;
+				trackCounter--;
+				
+				if (trackCounter == 0) {
+					showingWinScreen = true;
+				}
+			}
+			return;
+		}
+
+		function animate() {
+			if(showingLoseScreen) {
+				return;
+			}
+
+			ballX = ballX + ballSpeedX;
+			ballY = ballY + ballSpeedY;
+
+			if (ballY <=  BALL_RADIUS) {
+				ballSpeedY = -ballSpeedY
+			}
+			if (ballX >= canvas.width-BALL_RADIUS || ballX <= BALL_RADIUS) {
+				ballSpeedX = -ballSpeedX
+			}
+
+			breakAndBounceOffTrackAtPixelCoord(ballX, ballY);
+		}
+
+		function draw() {	
+			// background
+			drawRectangle(0,0,canvas.width,canvas.height,'black');
+
+			if(showingLoseScreen) {
+				canvasContext.fillStyle = 'white';
+
+				canvasContext.fillText("You're score: " + playerScore, 350, 200);
+
+				canvasContext.fillText("click to continue", 350, 500);
+				return;
+			} else if(showingWinScreen) {
+				canvasContext.fillStyle = 'white';
+
+				canvasContext.fillText("You Win! You're score: " + playerScore, 350, 200);
+
+				canvasContext.fillText("click to continue", 350, 500);
+				return;
+			}
+
+			drawTracks();
+
+			// ball
+			drawCircle(ballX, ballY, BALL_RADIUS, 'yellow')
+
+			canvasContext.fillStyle = 'white';
+			canvasContext.fillText("Lives: " + playerLives, canvas.width - 200, 10)
+			canvasContext.fillText("Score: " + playerScore, canvas.width - 100, 10)
+		}
+
+		function drawTracks()	{
+			for (var i=0;	i<TRACK_ROWS;	i++) {
+				for (var j=0;	j<TRACK_COLS;	j++) {
+					if (doesTrackExist(i, j)) {
+						var	trackX = j * TRACK_W;
+						var	trackY = i * TRACK_H + TOP_INFO_HEIGHT;
+
+						drawRectangle(trackX,	trackY, TRACK_W - TRACK_GAP, TRACK_H - TRACK_GAP, 'blue');
+					}
+				}
+			}
+		}
+
+		function drawRectangle(leftX, topY, width, height, drawColor) {
+			canvasContext.fillStyle = drawColor;
+			canvasContext.fillRect(leftX,topY,width,height);
+		}
+
+		function drawCircle(centerX, centerY, radius, color) {
+			canvasContext.fillStyle = color;
+			canvasContext.beginPath();
+			canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true)
+			canvasContext.fill();
+		}
+	</script>
+</body>
+</html>

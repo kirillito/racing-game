@@ -1,28 +1,59 @@
 <html>
 <head></head>
 <body>
-	<canvas id="gameCanvas" width="800" height="600"></canvas>
-
+	<canvas id="gameCanvas" width="800" height="640"></canvas>
+	<p	id="debugText"></p>
 	<script>
 		var canvas;
 		var canvasContext;
 
 		const TOP_INFO_HEIGHT = 20
 
-		var ballX = 50;
-		var ballSpeedX = 10;
-		var ballY = 50;
-		var ballSpeedY = 10;
+		const	KEY_UP_ARROW	= 38;
+		const	KEY_DOWN_ARROW	= 40;
+		const	KEY_LEFT_ARROW	= 37;
+		const	KEY_RIGHT_ARROW	= 39;
+		var	keyHeld_Gas	= false;
+		var	keyHeld_Reverse	= false;
+		var	keyHeld_TurnLeft	= false;
+		var	keyHeld_TurnRight	= false;
 
-    const BALL_RADIUS = 7;
-
-		const TRACK_W = 80;
-		const TRACK_H = 20;
-		const TRACK_GAP = 2;
-		const TRACK_COLS = 10;
-		const TRACK_ROWS = 14;
-		var trackGrid = new Array(TRACK_ROWS * TRACK_COLS);
-		var trackCounter = 0;
+		var carX = 50;
+		var carY = 50;
+		var carSpeed = 0;
+		var carAngle = 0;
+		var carPic = new Image();
+		var carPicLoaded = false;
+		var DRIVE_POWER = 0.4;
+		var REVERSE_POWER = 0.2;
+		var TURN_RATE = 0.02;
+		var MIN_TURN_SPEED = 0.6;
+		var GROUNDSPEED_DECAY_MULT = 0.94;
+		
+		const TRACK_W = 40;
+		const TRACK_H = 40;
+		const TRACK_GAP = 1;
+		const TRACK_COLS = 20;
+		const TRACK_ROWS = 15;
+		const	TRACK_CODE_ROAD = 0;
+		const	TRACK_CODE_WALL = 1;
+		const	TRACK_CODE_PLAYER = 2;
+		var trackGrid = 
+		[	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,
+			1,	2,	0,	0,	0,	0,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	1,	1,
+			1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,
+			1,	1,	1,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	1,	1,	1,	0,	0,	0,	1,
+			1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	0,	1,	1,	1,	1,	1,	1,	0,	0,	1,
+			1,	0,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	1,
+			1,	0,	0,	1,	1,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	1,	1,	0,	0,	1,
+			1,	0,	0,	1,	1,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	1,	0,	0,	1,
+			1,	0,	0,	1,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	1,	0,	0,	1,
+			1,	0,	0,  0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	0,	0,	1,
+			1,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	0,	0,	0,	1,	0,	0,	1,
+			1,	1,	0,	0,	0,	0,	1,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	1,
+			1,	1,	1,	0,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	0,	0,	0,	1,
+			1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	0,	1,	1,
+			1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1];
 
 		var playerScore = 0;
 		const STARTING_LIVES = 3;
@@ -35,7 +66,8 @@
 			canvas = document.getElementById('gameCanvas');
 			canvasContext = canvas.getContext('2d');
 			
-			tracksReset();
+			document.addEventListener('keydown', keyPressed);
+			document.addEventListener('keyup', keyReleased);
 
 			var framesPerSecond = 30;
 			setInterval(function() {
@@ -43,85 +75,77 @@
 				draw();
 			}, 1000/framesPerSecond);
 
-			ballReset();
+			carReset();
 		}
 
-		function ballReset() {
+		carPic.src="images/car1.png";
+		carPic.onload = function() {
+			carPicLoaded = true;
+		}
+
+		function keyPressed(e) {
+			setKeyHoldState(e.keyCode, true);
+
+			e.preventDefault();
+		}
+
+		function keyReleased(e) {
+			setKeyHoldState(e.keyCode, false);
+		}
+
+		function setKeyHoldState(keyCode,	setTo) {
+			if (keyCode === KEY_UP_ARROW) {
+				keyHeld_Gas	= setTo;
+			}
+			else if (keyCode === KEY_DOWN_ARROW) {
+				keyHeld_Reverse	= setTo;
+			}
+			else if (keyCode === KEY_LEFT_ARROW) {
+				keyHeld_TurnLeft	= setTo;
+			}
+			else if (keyCode === KEY_RIGHT_ARROW) {
+				keyHeld_TurnRight	= setTo;
+			}
+		}
+
+		function carReset() {
       if (playerLives <= 0) {
 				showingLoseScreen = true;
 			}
 
-			ballSpeedX = -ballSpeedX;
-			ballX = canvas.width/2
-			ballY = paddleY-10-BALL_RADIUS*2;
-		}
-
-		function tracksReset() {
-			for (var i=3*TRACK_COLS; i<TRACK_ROWS * TRACK_COLS; i++) {
-				trackGrid[i]	= 1;
-				trackCounter++;
+			for (var i=0; i<trackGrid.length; i++) {
+				if (trackGrid[i] == TRACK_CODE_PLAYER) {
+					var	row	= Math.floor(i/TRACK_COLS);
+					var	col	=	i%TRACK_COLS;
+					
+					carX = TRACK_W * (col + 0.5);
+					carY = TRACK_H * (row + 1);
+					trackGrid[i] = TRACK_CODE_ROAD;
+					break;
+				}
 			}
 		}
 
-		function doesTrackExist(row, col) {
-			var trackIndex = trackCoordToIndex(row, col);
-			return (trackGrid[trackIndex] == 1);
+		function isWallAtGridCoordinates(row, col) {
+			var trackIndex = trackGridCoordinatesToIndex(row, col);
+			return (trackGrid[trackIndex] == TRACK_CODE_WALL);
 		}
 
-		function trackCoordToIndex(row, col) {
+		function trackGridCoordinatesToIndex(row, col) {
 			return col + TRACK_COLS * row;
 		}
 
-		function breakAndBounceOffTrackAtPixelCoord(x, y) {
+		function checkForRoadAtPixelCoord(x, y) {
 			var col = Math.floor(x/TRACK_W);
 			var row = Math.floor(y/TRACK_H);
 
 			// outside the track area - don't do anything
 			if (col < 0 || col >= TRACK_COLS || row < 0 || row >= TRACK_ROWS) 
-				return;
+				return false;
 
-			var trackIndex = trackCoordToIndex(row, col);
-			// if track is not removed
-			if (trackGrid[trackIndex] == 1) {
-				previousCol = Math.floor((ballX-ballSpeedX) / TRACK_W);
-				previousRow = Math.floor((ballY-ballSpeedY) / TRACK_H);
-
-				var bothTestsFailed = true;
-
-				// ball changed columns of the track grid
-				if (previousCol != col) {
-					// make sure that there is no horizontally adjacent track from where the ball is coming
-					var	adjacentTrackIndex	=	trackCoordToIndex(row, previousCol);
-					if (trackGrid[adjacentTrackIndex] != 1)	{
-						ballSpeedX = -ballSpeedX;
-						bothTestsFailed	= false;
-					}
-				}
-
-				// ball changed rows of the track grid
-				if (previousRow != row) {
-					// make sure that there is no vertically adjacent track from where the ball is coming
-					var	adjacentTrackIndex	=	trackCoordToIndex(previousRow, col);
-					if (trackGrid[adjacentTrackIndex] != 1)	{
-						ballSpeedY = -ballSpeedY;
-						bothTestsFailed	= false;
-					}
-				}
-
-				// the ball hit three tracks in L-like shape - reverse movement 
-				if (bothTestsFailed) {
-					ballSpeedX = -ballSpeedX;
-      		ballSpeedY = -ballSpeedY;
-				}
-
-				trackGrid[trackIndex] = 0;
-				trackCounter--;
-				
-				if (trackCounter == 0) {
-					showingWinScreen = true;
-				}
-			}
-			return;
+			var trackIndex = trackGridCoordinatesToIndex(row, col);
+			// return true if the track is the road
+			return (trackGrid[trackIndex] === TRACK_CODE_ROAD);
 		}
 
 		function animate() {
@@ -129,17 +153,32 @@
 				return;
 			}
 
-			ballX = ballX + ballSpeedX;
-			ballY = ballY + ballSpeedY;
-
-			if (ballY <=  BALL_RADIUS) {
-				ballSpeedY = -ballSpeedY
+			if (keyHeld_Gas)	{
+				carSpeed	+= DRIVE_POWER;
 			}
-			if (ballX >= canvas.width-BALL_RADIUS || ballX <= BALL_RADIUS) {
-				ballSpeedX = -ballSpeedX
+			if (keyHeld_Reverse)	{
+				carSpeed	+= -REVERSE_POWER;
+			}
+			if (Math.abs(carSpeed) >= MIN_TURN_SPEED) {
+				if (keyHeld_TurnLeft)	{
+					carAngle	+= -TURN_RATE*Math.PI;
+				}
+				if (keyHeld_TurnRight)	{
+					carAngle	+= TURN_RATE*Math.PI;
+				}
 			}
 
-			breakAndBounceOffTrackAtPixelCoord(ballX, ballY);
+			var nextCarX = carX + Math.cos(carAngle) * carSpeed;
+			var nextCarY = carY + Math.sin(carAngle) * carSpeed;
+
+			if (checkForRoadAtPixelCoord(nextCarX, nextCarY)) {
+				carX = nextCarX;
+				carY = nextCarY;
+
+				carSpeed *= GROUNDSPEED_DECAY_MULT;				
+			} else {
+				carSpeed = -0.5*carSpeed;
+			}
 		}
 
 		function draw() {	
@@ -164,8 +203,8 @@
 
 			drawTracks();
 
-			// ball
-			drawCircle(ballX, ballY, BALL_RADIUS, 'yellow')
+			// car
+			drawCar(carX, carY);
 
 			canvasContext.fillStyle = 'white';
 			canvasContext.fillText("Lives: " + playerLives, canvas.width - 200, 10)
@@ -175,13 +214,19 @@
 		function drawTracks()	{
 			for (var i=0;	i<TRACK_ROWS;	i++) {
 				for (var j=0;	j<TRACK_COLS;	j++) {
-					if (doesTrackExist(i, j)) {
+					if (isWallAtGridCoordinates(i, j)) {
 						var	trackX = j * TRACK_W;
 						var	trackY = i * TRACK_H + TOP_INFO_HEIGHT;
 
 						drawRectangle(trackX,	trackY, TRACK_W - TRACK_GAP, TRACK_H - TRACK_GAP, 'blue');
 					}
 				}
+			}
+		}
+
+		function drawCar(carX, carY) {
+			if (carPicLoaded) {
+				drawImageCenteredAtLocationWithRotation(carPic, carX, carY, carAngle);
 			}
 		}
 
@@ -195,6 +240,14 @@
 			canvasContext.beginPath();
 			canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true)
 			canvasContext.fill();
+		}
+
+		function drawImageCenteredAtLocationWithRotation(graphic, x, y, angle) {
+			canvasContext.save();
+			canvasContext.translate(x,y);
+			canvasContext.rotate(angle);	//	sets	the	rotation
+			canvasContext.drawImage(graphic,-graphic.width/2,-graphic.height/2);
+			canvasContext.restore();
 		}
 	</script>
 </body>

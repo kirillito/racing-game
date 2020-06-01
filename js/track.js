@@ -8,22 +8,28 @@ const TRACK_ROWS = 15;
 const	TRACK_CODE_ROAD = 0;
 const	TRACK_CODE_WALL = 1;
 const	TRACK_CODE_PLAYER = 2;
+const	TRACK_CODE_FINISH = 3;
+const	TRACK_CODE_MOUNTAIN = 4;
+const	TRACK_CODE_TREES = 5;
+const	TRACK_CODE_LAKE = 6;
+const	TRACK_CODE_FLAG = 7;
+
 var trackGrid = 
-[	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,
-  1,	2,	0,	0,	0,	0,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	1,	1,
+[	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	4,
+  1,	2,	0,	0,	0,	0,	0,	0,	5,	5,	5,	0,	0,	0,	0,	0,	0,	0,	1,	1,
   1,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,
   1,	1,	1,	1,	1,	1,	0,	0,	0,	0,	0,	0,	0,	1,	1,	1,	0,	0,	0,	1,
-  1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	0,	1,	1,	1,	1,	1,	1,	0,	0,	1,
-  1,	0,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	1,
-  1,	0,	0,	1,	1,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	1,	1,	0,	0,	1,
+  1,	1,	1,	1,	5,	1,	1,	1,	0,	0,	0,	1,	1,	1,	5,	1,	1,	0,	0,	1,
+  1,	0,	0,	1,	5,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	1,
+  1,	3,	3,	1,	1,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	1,	1,	0,	0,	1,
   1,	0,	0,	1,	1,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	1,	0,	0,	1,
-  1,	0,	0,	1,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	1,	0,	0,	1,
+  1,	0,	0,	7,	0,	0,	0,	0,	0,	7,	0,	0,	0,	0,	0,	1,	1,	0,	0,	1,
   1,	0,	0,  0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	1,	0,	0,	1,
-  1,	0,	0,	0,	0,	0,	1,	0,	0,	0,	0,	0,	1,	0,	0,	0,	1,	0,	0,	1,
+  1,	0,	0,	0,	0,	0,	7,	0,	0,	0,	0,	0,	7,	0,	0,	0,	7,	0,	0,	1,
   1,	1,	0,	0,	0,	0,	1,	1,	0,	0,	1,	1,	1,	0,	0,	0,	0,	0,	0,	1,
-  1,	1,	1,	0,	0,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	0,	0,	0,	1,
-  1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	0,	0,	0,	1,	1,
-  1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1,	1];
+  6,	1,	1,	0,	0,	1,	1,	1,	1,	1,	1,	5,	1,	1,	0,	0,	0,	0,	0,	1,
+  6,	6,	1,	1,	1,	1,	5,	5,	5,	5,	5,	5,	5,	1,	1,	0,	0,	0,	1,	1,
+  6,	6,	6,	6,	6,	6,	6,	5,	5,	5,	5,	5,	5,	5,	1,	1,	1,	1,	1,	4];
 
   function isWallAtGridCoordinates(row, col) {
     var trackIndex = trackGridCoordinatesToIndex(row, col);
@@ -53,11 +59,37 @@ var trackGrid =
         var	trackX = (j + 0.5) * TRACK_W;
         var	trackY = (i + 0.5) * TRACK_H;
 
-        if (!isWallAtGridCoordinates(i, j)){
-          drawImageCenteredAtLocationWithRotation(roadPic, trackX,	trackY);
-        } else {
-          drawImageCenteredAtLocationWithRotation(wallPic, trackX,	trackY);
-        }        
+        var trackIndex = trackGridCoordinatesToIndex(i,j);
+        var trackType = trackGrid[trackIndex];
+        var useImgNode;
+
+        switch (trackType) {
+          case TRACK_CODE_ROAD:
+            useImgNode = roadPic;
+            break;
+          case TRACK_CODE_WALL:
+            useImgNode = wallPic;
+            break;
+          case TRACK_CODE_FINISH:
+            useImgNode = finishPic;
+            break;
+          case TRACK_CODE_FLAG:
+            useImgNode = flagPic;
+            break;
+          case TRACK_CODE_LAKE:
+            useImgNode = lakePic;
+            break;
+          case TRACK_CODE_MOUNTAIN:
+            useImgNode = mountainPic;
+            break;
+          case TRACK_CODE_TREES:
+            useImgNode = treesPic;
+            break;
+          default:
+            continue;
+        }
+
+        drawImageCenteredAtLocationWithRotation(useImgNode, trackX,	trackY);
       }
     }
   }

@@ -1,14 +1,17 @@
+const DRIVE_POWER = 0.4;
+const REVERSE_POWER = 0.2;
+const TURN_RATE = 0.02;
+const MIN_TURN_SPEED = 0.6;
+const GROUNDSPEED_DECAY_MULT = 0.94;
+
+function carClass() {
+  
+}
+
 var carX = 50;
 var carY = 50;
 var carSpeed = 0;
 var carAngle = 0;
-
-var DRIVE_POWER = 0.4;
-var REVERSE_POWER = 0.2;
-var TURN_RATE = 0.02;
-var MIN_TURN_SPEED = 0.6;
-var GROUNDSPEED_DECAY_MULT = 0.94;
-
 
 function carReset() {
   // if (playerLives <= 0) {

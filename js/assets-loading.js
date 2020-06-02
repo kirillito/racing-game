@@ -1,31 +1,34 @@
 var carPic = new Image();
-var wallPic = new Image();
-var roadPic = new Image();
-var finishPic = new Image();
-var mountainPic = new Image();
-var treesPic = new Image();
-var lakePic = new Image();
-var flagPic = new Image();
+var trackPics = [];
+
 var imagesToLoad = 0;
 
-
+function loadImageForTrackCode(trackCode, fileName) {
+  trackPics[trackCode] = new Image();
+  beginLoadingImage(trackPics[trackCode], fileName);
+}
 
 function loadImages() {
   var	imageList	=	[
-		{imgNode:carPic,	fileName:"car1.png"},
-		{imgNode:wallPic,	fileName:"wall.png"},
-		{imgNode:roadPic,	fileName:"road.png"},
-		{imgNode:finishPic,	fileName:"finish.png"},
-		{imgNode:mountainPic,	fileName:"mountain.png"},
-		{imgNode:treesPic,	fileName:"trees.png"},
-		{imgNode:lakePic,	fileName:"lake.png"},
-		{imgNode:flagPic,	fileName:"flag.png"}
+    {imgNode:carPic,	fileName:"car1.png"},
+    
+		{trackCode:TRACK_CODE_WALL,	fileName:"wall.png"},
+		{trackCode:TRACK_CODE_ROAD,	fileName:"road.png"},
+		{trackCode:TRACK_CODE_FINISH,	fileName:"finish.png"},
+		{trackCode:TRACK_CODE_MOUNTAIN,	fileName:"mountain.png"},
+		{trackCode:TRACK_CODE_TREES,	fileName:"trees.png"},
+		{trackCode:TRACK_CODE_LAKE,	fileName:"lake.png"},
+		{trackCode:TRACK_CODE_FLAG,	fileName:"flag.png"}
     ];
     
   imagesToLoad = imageList.length;
 
   for (img of imageList) {
-    beginLoadingImage(img.imgNode,img.fileName);
+    if (img.trackCode !== undefined) {
+      loadImageForTrackCode(img.trackCode, img.fileName);
+    } else {
+      beginLoadingImage(img.imgNode,img.fileName);
+    }    
   }
 }
 

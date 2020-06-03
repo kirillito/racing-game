@@ -1,14 +1,37 @@
 <html>
 <head></head>
 <body style="color: white; background-color: black;">
-	<div>Player Score: <span id="playerScoreLabel">0</span></div>
-	<canvas id="gameCanvas" width="880" height="720"></canvas>
+	<div style="display: flex; width: 1040px">
+		<div style="position: relative; left: 0px;">Player 1 Score: <span id="playerScoreLabel">0</span></div>
+		<div style="position: relative; right: 0px; margin-left:auto;">Player 2 Score: <span id="playerScoreLabel">0</span></div>
+	</div>
+	<div style="display: flex">
+		<canvas id="gameCanvas" width="1040" height="720"></canvas>
+		<div style="margin-left: 20px;">
+			<h3>Controls:</h3>
+			Player 1: 
+			<ul>
+				<li>Up Arrow - Gas</li>
+				<li>Down Arrow - Break/Reverse</li>
+				<li>Left Arrow - Turn Left</li>
+				<li>Right Arrow - Turn Right</li>
+			</ul>
+			<br />
+			Player 2: 
+			<ul>
+				<li>W - Gas</li>
+				<li>S - Break/Reverse</li>
+				<li>A - Turn Left</li>
+				<li>D - Turn Right</li>
+			</ul>
+		</div>
+	</div>
 	<p	id="debugText"></p>
-	<script src="js/main.js"></script>
 	<script src="js/car.js"></script>
 	<script src="js/graphics-common.js"></script>
 	<script src="js/input.js"></script>
 	<script src="js/track.js"></script>
 	<script src="js/assets-loading.js"></script>
+	<script src="js/main.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 var carPic = new Image();
+var carPic2 = new Image();
 var trackPics = [];
 
 var imagesToLoad = 0;
@@ -11,6 +12,7 @@ function loadImageForTrackCode(trackCode, fileName) {
 function loadImages() {
   var	imageList	=	[
     {imgNode:carPic,	fileName:"car1.png"},
+    {imgNode:carPic2,	fileName:"car2.png"},
     
 		{trackCode:TRACK_CODE_WALL,	fileName:"wall.png"},
 		{trackCode:TRACK_CODE_ROAD,	fileName:"road.png"},

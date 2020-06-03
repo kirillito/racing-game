@@ -1,12 +1,14 @@
-var canvas;
-var canvasContext;
+let canvas;
+let canvasContext;
 
 const FPS = 30;
 
-var playerScore = 0;
+let playerScore = 0;
+let player1 = new car();
+let player2 = new car();
 
-var showingLoseScreen = false;
-var showingWinScreen = false;
+let showingLoseScreen = false;
+let showingWinScreen = false;
 
 window.onload = function() {
   canvas = document.getElementById('gameCanvas');
@@ -28,7 +30,8 @@ function startGame() {
     draw();
   }, 1000/FPS);
 
-  carReset();
+  player1.carInit();
+  player2.carInit();
 }
 
 function animate() {
@@ -36,7 +39,8 @@ function animate() {
     return;
   }
 
-  animateCar();
+  player1.animateCar();
+  player2.animateCar();
 }
 
 function draw() {	
@@ -62,7 +66,8 @@ function draw() {
   drawTracks();
 
   // car
-  drawCar(carX, carY);
+  player1.drawCar();
+  player2.drawCar();
 
   // canvasContext.fillStyle = 'white';
   // canvasContext.fillText("Score: " + playerScore, canvas.width - 100, 10)

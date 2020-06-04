@@ -4,11 +4,17 @@ const TURN_RATE = 0.02;
 const MIN_TURN_SPEED = 0.6;
 const GROUNDSPEED_DECAY_MULT = 0.94;
 
-function car() {
-  this.carX = 50;
-  this.carY = 50;
-  this.carSpeed = 0;
-  this.carAngle = 0;
+function car(name) {
+  this.name = name;
+
+  this.startX;
+  this.startY;
+  this.carX;
+  this.carY;
+
+  this.carSpeed;
+  this.carAngle;
+  this.lap;
 
   this.keyHeld_Gas	= false;
   this.keyHeld_Reverse	= false;
@@ -22,29 +28,35 @@ function car() {
     this.controlKeyTurnRight = turnRightKey;
   }
 
-  this.carInit = function() {
-    this.carReset();
+  this.init = function(img) {
+    this.imgSprite = img;
+    this.reset();
   }
 
-  this.carReset = function() {
-    // if (playerLives <= 0) {
-    //   showingLoseScreen = true;
-    // }
+  this.reset = function() {
+    this.carSpeed = 0;
+    this.carAngle = 0;
+    this.lap = 0;
 
-    for (var i=0; i<trackGrid.length; i++) {
-      if (trackGrid[i] == TRACK_CODE_PLAYER) {
-        var	row	= Math.floor(i/TRACK_COLS);
-        var	col	=	i%TRACK_COLS;
-        
-        this.carX = TRACK_W * (col + 0.5);
-        this.carY = TRACK_H * (row + 0.5);
-        trackGrid[i] = TRACK_CODE_ROAD;
-        break;
+    if (this.startX === undefined) {
+      for (var i=0; i<trackGrid.length; i++) {
+        if (trackGrid[i] == TRACK_CODE_PLAYER) {
+          var	row	= Math.floor(i/TRACK_COLS);
+          var	col	=	i%TRACK_COLS;
+          
+          this.startX = TRACK_W * (col + 0.5);
+          this.startY = TRACK_H * (row + 0.5);
+          trackGrid[i] = TRACK_CODE_ROAD;
+          break;
+        }
       }
     }
+
+    this.carX = this.startX;
+    this.carY = this.startY;
   }
 
-  this.animateCar = function() {
+  this.move = function() {
     if (this.keyHeld_Gas)	{
       this.carSpeed	+= DRIVE_POWER;
     }
@@ -63,17 +75,28 @@ function car() {
     var nextCarX = this.carX + Math.cos(this.carAngle) * this.carSpeed;
     var nextCarY = this.carY + Math.sin(this.carAngle) * this.carSpeed;
 
-    if (checkForRoadAtPixelCoord(nextCarX, nextCarY)) {
+    var nextTileCode = getTrackCodeAtPixelCoordinates(nextCarX, nextCarY);
+
+    if (nextTileCode === TRACK_CODE_ROAD || nextTileCode === TRACK_CODE_FINISH) {
+      if (nextTileCode === TRACK_CODE_FINISH) {
+        var currentTileCode = getTrackCodeAtPixelCoordinates(this.carX, this.carY);
+
+        // TODO: it is currenty possible to drive in opposite direction and still cross the finish line counting it as a lap
+        if (currentTileCode !== nextTileCode) {
+          this.lap++;
+        }
+      }
+
       this.carX = nextCarX;
       this.carY = nextCarY;
 
-      this.carSpeed *= GROUNDSPEED_DECAY_MULT;				
+      this.carSpeed *= GROUNDSPEED_DECAY_MULT;
     } else {
       this.carSpeed = -0.5*this.carSpeed;
     }
   }
 
-  this.drawCar = function() {
-    drawImageCenteredAtLocationWithRotation(carPic, this.carX, this.carY, this.carAngle);
+  this.draw = function() {
+    drawImageCenteredAtLocationWithRotation(this.imgSprite, this.carX, this.carY, this.carAngle);
   }
 }

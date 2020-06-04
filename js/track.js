@@ -43,17 +43,16 @@ var trackGrid =
     return col + TRACK_COLS * row;
   }
   
-  function checkForRoadAtPixelCoord(x, y) {
+  function getTrackCodeAtPixelCoordinates(x, y) {
     var col = Math.floor(x/TRACK_W);
     var row = Math.floor(y/TRACK_H);
   
     // outside the track area - don't do anything
     if (col < 0 || col >= TRACK_COLS || row < 0 || row >= TRACK_ROWS) 
-      return false;
+      return TRACK_CODE_WALL;
   
     var trackIndex = trackGridCoordinatesToIndex(row, col);
-    // return true if the track is the road
-    return (trackGrid[trackIndex] === TRACK_CODE_ROAD);
+    return trackGrid[trackIndex];
   }
 
   function drawTracks()	{

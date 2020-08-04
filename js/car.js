@@ -39,10 +39,10 @@ function car(name) {
     this.lap = 0;
 
     if (this.startX === undefined) {
-      for (var i=0; i<trackGrid.length; i++) {
+      for (let i=0; i<trackGrid.length; i++) {
         if (trackGrid[i] == TRACK_CODE_PLAYER) {
-          var	row	= Math.floor(i/TRACK_COLS);
-          var	col	=	i%TRACK_COLS;
+          let	row	= Math.floor(i/TRACK_COLS);
+          let	col	=	i%TRACK_COLS;
           
           this.startX = TRACK_W * (col + 0.5);
           this.startY = TRACK_H * (row + 0.5);
@@ -57,29 +57,43 @@ function car(name) {
   }
 
   this.move = function() {
+    let currentTileCode = getTrackCodeAtPixelCoordinates(this.carX, this.carY);
+
     if (this.keyHeld_Gas)	{
-      this.carSpeed	+= DRIVE_POWER;
+      if (currentTileCode !== TRACK_CODE_GRASS) {
+        this.carSpeed	+= DRIVE_POWER;
+      } else {
+        this.carSpeed	+= DRIVE_POWER*0.4;
+      }
     }
     if (this.keyHeld_Reverse)	{
-      this.carSpeed	+= -REVERSE_POWER;
+      if (currentTileCode !== TRACK_CODE_GRASS) {
+        this.carSpeed	+= -REVERSE_POWER;
+      } else {
+        this.carSpeed	+= -REVERSE_POWER*0.4;
+      }
     }
     if (Math.abs(this.carSpeed) >= MIN_TURN_SPEED) {
       if (this.keyHeld_TurnLeft)	{
-        this.carAngle	+= -TURN_RATE*Math.PI;
+        if (currentTileCode !== TRACK_CODE_OIL) {
+          this.carAngle	+= -TURN_RATE*Math.PI;
+        }
       }
       if (this.keyHeld_TurnRight)	{
-        this.carAngle	+= TURN_RATE*Math.PI;
+        if (currentTileCode !== TRACK_CODE_OIL) {
+          this.carAngle	+= TURN_RATE*Math.PI;
+        }
       }
     }
 
-    var nextCarX = this.carX + Math.cos(this.carAngle) * this.carSpeed;
-    var nextCarY = this.carY + Math.sin(this.carAngle) * this.carSpeed;
+    let nextCarX = this.carX + Math.cos(this.carAngle) * this.carSpeed;
+    let nextCarY = this.carY + Math.sin(this.carAngle) * this.carSpeed;
 
-    var nextTileCode = getTrackCodeAtPixelCoordinates(nextCarX, nextCarY);
+    let nextTileCode = getTrackCodeAtPixelCoordinates(nextCarX, nextCarY);
 
-    if (nextTileCode === TRACK_CODE_ROAD || nextTileCode === TRACK_CODE_FINISH) {
+    if (nextTileCode === TRACK_CODE_ROAD || nextTileCode === TRACK_CODE_GRASS || nextTileCode === TRACK_CODE_OIL || nextTileCode === TRACK_CODE_FINISH) {
       if (nextTileCode === TRACK_CODE_FINISH) {
-        var currentTileCode = getTrackCodeAtPixelCoordinates(this.carX, this.carY);
+        let currentTileCode = getTrackCodeAtPixelCoordinates(this.carX, this.carY);
 
         // TODO: it is currenty possible to drive in opposite direction and still cross the finish line counting it as a lap
         if (currentTileCode !== nextTileCode) {

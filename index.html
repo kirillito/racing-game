@@ -2,14 +2,20 @@
 <head></head>
 <body style="color: white; background-color: black;">
 	<div style="display: flex; width: 1040px">
-		<div style="position: relative; left: 0px;"><span id="player1Name">Player 1</span> Lap: <span id="player1LapLabel">0</span></div>
-		<div style="position: relative; right: 0px; margin-left:auto;"><span id="player2Name">Player 2</span> Lap: <span id="player2LapLabel">0</span></div>
+		<div style="position: relative; left: 0px;">
+			<span id="player1Name">Player 1</span> Lap: <span id="player1LapLabel">0</span>
+			| Time: <span id="player1TimeLabel">-</span> | Best: <span id="player1BestLabel">-</span>
+		</div>
+		<div style="position: relative; right: 0px; margin-left:auto;">
+			<span id="player2Name">Player 2</span> Lap: <span id="player2LapLabel">0</span>
+			| Time: <span id="player2TimeLabel">-</span> | Best: <span id="player2BestLabel">-</span>
+		</div>
 	</div>
 	<div style="display: flex">
 		<canvas id="gameCanvas" width="1040" height="720"></canvas>
 		<div style="margin-left: 20px;">
 			<h3>Controls:</h3>
-			<span id="player1NameControls">Player 1</span>: 
+			<span id="player1NameControls">Player 1</span>:
 			<ul>
 				<li>Up Arrow - Gas</li>
 				<li>Down Arrow - Break/Reverse</li>
@@ -17,12 +23,18 @@
 				<li>Right Arrow - Turn Right</li>
 			</ul>
 			<br />
-			<span id="player2NameControls">Player 1</span>: 
+			<span id="player2NameControls">Player 1</span>:
 			<ul>
 				<li>W - Gas</li>
 				<li>S - Break/Reverse</li>
 				<li>A - Turn Left</li>
 				<li>D - Turn Right</li>
+			</ul>
+			<br />
+			General:
+			<ul>
+				<li>Space / Enter / Click - Start race</li>
+				<li>M - Mute / unmute</li>
 			</ul>
 		</div>
 	</div>
@@ -31,6 +43,8 @@
 	<script src="js/graphics-common.js"></script>
 	<script src="js/input.js"></script>
 	<script src="js/track.js"></script>
+	<script src="js/assets-config.js"></script>
+	<script src="js/audio.js"></script>
 	<script src="js/assets-loading.js"></script>
 	<script src="js/main.js"></script>
 </body>

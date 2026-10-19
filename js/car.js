@@ -16,6 +16,12 @@ function car(name) {
   this.carAngle;
   this.lap;
 
+  // Lap timing (milliseconds, from performance.now())
+  this.lapStartTime = 0;
+  this.lastLapTime = null;
+  this.bestLapTime = null;
+  this.lapTimes = [];
+
   this.keyHeld_Gas	= false;
   this.keyHeld_Reverse	= false;
   this.keyHeld_TurnLeft	= false;
@@ -37,6 +43,10 @@ function car(name) {
     this.carSpeed = 0;
     this.carAngle = 0;
     this.lap = 0;
+    this.lapStartTime = 0;
+    this.lastLapTime = null;
+    this.bestLapTime = null;
+    this.lapTimes = [];
 
     if (this.startX === undefined) {
       for (let i=0; i<trackGrid.length; i++) {
@@ -54,6 +64,33 @@ function car(name) {
 
     this.carX = this.startX;
     this.carY = this.startY;
+  }
+
+  // Called when the race starts (after "GO").
+  this.startLapTimer = function(now) {
+    this.lapStartTime = now;
+  }
+
+  // Current lap's elapsed time in ms (0 before the race starts).
+  this.getCurrentLapTime = function(now) {
+    return this.lapStartTime ? now - this.lapStartTime : 0;
+  }
+
+  // Called from move() each time the finish line is crossed.
+  // The first crossing is the run-up from the start grid, so it only restarts
+  // the lap timer; later crossings are full laps and get recorded.
+  this.onLapCompleted = function() {
+    let now = performance.now();
+
+    if (this.lap > 1) {
+      this.lastLapTime = now - this.lapStartTime;
+      this.lapTimes.push(this.lastLapTime);
+      if (this.bestLapTime === null || this.lastLapTime < this.bestLapTime) {
+        this.bestLapTime = this.lastLapTime;
+      }
+    }
+    this.lapStartTime = now;
+    playSound("lap");
   }
 
   this.move = function() {
@@ -98,6 +135,7 @@ function car(name) {
         // TODO: it is currenty possible to drive in opposite direction and still cross the finish line counting it as a lap
         if (currentTileCode !== nextTileCode) {
           this.lap++;
+          this.onLapCompleted();
         }
       }
 
@@ -106,6 +144,9 @@ function car(name) {
 
       this.carSpeed *= GROUNDSPEED_DECAY_MULT;
     } else {
+      if (Math.abs(this.carSpeed) > 2) {
+        playSound("bump");
+      }
       this.carSpeed = -0.5*this.carSpeed;
     }
   }

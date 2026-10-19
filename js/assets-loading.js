@@ -1,3 +1,5 @@
+// Image loading. All file names come from assets-config.js.
+
 let carPic1 = new Image();
 let carPic2 = new Image();
 let trackPics = [];
@@ -10,38 +12,35 @@ function loadImageForTrackCode(trackCode, fileName) {
 }
 
 function loadImages() {
-  let	imageList	=	[
-    {imgNode:carPic1,	fileName:"car1.png"},
-    {imgNode:carPic2,	fileName:"car2.png"},
-    
-		{trackCode:TRACK_CODE_WALL,	fileName:"wall.png"},
-		{trackCode:TRACK_CODE_ROAD,	fileName:"road.png"},
-		{trackCode:TRACK_CODE_FINISH,	fileName:"finish.png"},
-		{trackCode:TRACK_CODE_MOUNTAIN,	fileName:"mountain.png"},
-		{trackCode:TRACK_CODE_TREES,	fileName:"trees.png"},
-		{trackCode:TRACK_CODE_LAKE,	fileName:"lake.png"},
-    {trackCode:TRACK_CODE_FLAG,	fileName:"flag.png"},
-    {trackCode:TRACK_CODE_GRASS,	fileName:"grass.png"},
-    {trackCode:TRACK_CODE_OIL,	fileName:"oil.png"}
-    ];
-    
+  let imageList = [
+    {imgNode: carPic1, fileName: CAR_IMAGES.player1},
+    {imgNode: carPic2, fileName: CAR_IMAGES.player2}
+  ];
+
+  for (let trackCode in TRACK_TILE_IMAGES) {
+    imageList.push({trackCode: Number(trackCode), fileName: TRACK_TILE_IMAGES[trackCode]});
+  }
+
   imagesToLoad = imageList.length;
 
-  for (img of imageList) {
+  for (let img of imageList) {
     if (img.trackCode !== undefined) {
       loadImageForTrackCode(img.trackCode, img.fileName);
     } else {
-      beginLoadingImage(img.imgNode,img.fileName);
-    }    
+      beginLoadingImage(img.imgNode, img.fileName);
+    }
   }
 }
 
 function beginLoadingImage(imgNode, fileName) {
-  imgNode.src = "images/" + fileName;
-  imgNode.onload = setAssetAsLoadedAndLaunchIfReady();
+  // A missing file still counts as "done" so the game never hangs on loading;
+  // drawImageCenteredAtLocationWithRotation draws a placeholder box instead.
+  imgNode.onload = setAssetAsLoadedAndLaunchIfReady;
+  imgNode.onerror = setAssetAsLoadedAndLaunchIfReady;
+  imgNode.src = IMAGE_DIR + fileName;
 }
 
 function setAssetAsLoadedAndLaunchIfReady() {
   imagesToLoad--;
-  this.launchIfReady();
+  launchIfReady();
 }
